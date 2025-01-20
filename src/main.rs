@@ -2,9 +2,9 @@ use quests::quests;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Mapping};
+use std::cmp::min;
 use std::collections::HashMap;
 use std::fs;
-
 pub mod quests;
 
 // Mock `quests` and `config` for this example
@@ -44,10 +44,10 @@ pub type QuestMap = HashMap<&'static str, QuestCallback>;
 
 fn config() -> Config {
     Config {
-        daily_quest_size: 10,
-        week_quests_size: 4,
+        daily_quest_size: 14,
+        week_quests_size: 7,
         randomiser: 2,
-        max_page: 10,
+        max_page: 1,
         free_reward_interval: 3,
         last_free_reward: 5,
         last_premium_reward: 5,
@@ -95,7 +95,7 @@ fn write_yaml<T: Serialize>(path: &str, data: &T) {
 
 fn main() {
     let config = config();
-    let quests_map = quests();
+    let quests_map: QuestMap = quests();
 
     // Clear and prepare directories
     let output_quests_dir = "./output/quests";
@@ -108,7 +108,7 @@ fn main() {
     // Daily quests
     println!("Generating daily quests...");
     let daily_quests = generate_quests(
-        config.daily_quest_size,
+        min(quests_map.len(), config.daily_quest_size),
         false,
         config.randomiser,
         &quests_map,
@@ -122,7 +122,12 @@ fn main() {
     // Weekly quests
     println!("Generating weekly quests...");
     for i in 0..config.week_quests_size {
-        let weekly_quests = generate_quests(14, true, config.randomiser, &quests_map);
+        let weekly_quests = generate_quests(
+            min(quests_map.len(), 14),
+            true,
+            config.randomiser,
+            &quests_map,
+        );
         write_yaml(
             &format!("{}/week-{}-quests.yml", output_quests_dir, i + 1),
             &weekly_quests,
