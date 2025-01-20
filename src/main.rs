@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::{self, Mapping};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 
 pub mod quests;
 

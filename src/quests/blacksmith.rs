@@ -1,5 +1,4 @@
 use rand::seq::SliceRandom;
-use serde::Serialize;
 
 use crate::{Item, Quest};
 
