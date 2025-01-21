@@ -5,7 +5,11 @@ use serde_yaml::{self, Mapping};
 use std::cmp::min;
 use std::collections::HashMap;
 use std::fs;
+
 pub mod quests;
+pub mod constants;
+
+const BASE_QUEST_POINTS: f64 = 100.0;
 
 // Mock `quests` and `config` for this example
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -13,10 +17,13 @@ pub struct Quest {
     name: String,
     variable: String,
     exclusive: Option<String>,
+    #[serde(rename = "type")]
     quest_type: String,
     required_progress: u32,
     points: u32,
     item: Item,
+    #[serde(rename = "special-progress")]
+    special_progress: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -47,11 +54,11 @@ fn config() -> Config {
         daily_quest_size: 14,
         week_quests_size: 7,
         randomiser: 2,
-        max_page: 1,
+        max_page: 7,
         free_reward_interval: 3,
         last_free_reward: 5,
         last_premium_reward: 5,
-        premium_reward_chance: 75.0,
+        premium_reward_chance: 25.0,
         premium_xp_multiplier: 1.5,
         tier_xp_calculator: |tier| (tier as u32 + 1) * 100,
     }
@@ -96,6 +103,7 @@ fn write_yaml<T: Serialize>(path: &str, data: &T) {
 fn main() {
     let config = config();
     let quests_map: QuestMap = quests();
+    let mut quest_id_counter = 0;
 
     // Clear and prepare directories
     let output_quests_dir = "./output/quests";
@@ -113,7 +121,15 @@ fn main() {
         config.randomiser,
         &quests_map,
     );
-    println!("1");
+
+    let daily_quests: HashMap<u32, Quest> = daily_quests
+        .into_iter()
+        .map(|quest| {
+            quest_id_counter += 1;
+            (quest_id_counter, quest)
+        })
+        .collect();
+
     write_yaml(
         &format!("{}/daily-quests.yml", output_quests_dir),
         &daily_quests,
@@ -128,6 +144,15 @@ fn main() {
             config.randomiser,
             &quests_map,
         );
+
+        let weekly_quests: HashMap<u32, Quest> = weekly_quests
+            .into_iter()
+            .map(|quest| {
+                quest_id_counter += 1;
+                (quest_id_counter, quest)
+            })
+            .collect();
+
         write_yaml(
             &format!("{}/week-{}-quests.yml", output_quests_dir, i + 1),
             &weekly_quests,

@@ -1,8 +1,8 @@
 use rand::seq::SliceRandom;
 
-use crate::{Item, Quest};
+use crate::{Item, Quest, BASE_QUEST_POINTS};
 
-const BASE_QUEST_POINTS: f64 = 100.0; // Replace this with the actual value from your config
+ // Replace this with the actual value from your config
 
 pub fn generate_blacksmith_quest(multiplier: f64) -> Quest {
     let types = ["sword", "pickaxe", "axe", "armor"];
@@ -87,5 +87,8 @@ pub fn generate_blacksmith_quest(multiplier: f64) -> Quest {
             ],
         },
         exclusive: None,
+        special_progress: Some(
+            items.get(quest_type).unwrap().iter().filter(|&&x| x.contains("diamond")).map(|x| x.to_string() + " 2").collect(),
+        )
     }
 }
